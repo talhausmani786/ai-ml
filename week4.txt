@@ -1,0 +1,188 @@
+w4q1
+
+import heapq
+
+def heuristic(a, b):
+    """Manhattan distance between two cells."""
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
+
+def a_star(grid, start, goal):
+    rows = len(grid)
+    cols = len(grid[0])
+
+    # Priority queue: (f_cost, g_cost, position)
+    open_set = []
+    heapq.heappush(open_set, (0, 0, start))
+
+    # Cost from start to each cell
+    g_cost = {start: 0}
+
+    # To reconstruct the final path
+    parent = {start: None}
+
+    # Four possible movements: up, down, left, right
+    directions = [
+        (-1, 0),  # up
+        (1, 0),   # down
+        (0, -1),  # left
+        (0, 1)    # right
+    ]
+
+    while open_set:
+        f, g, current = heapq.heappop(open_set)
+
+        # Goal reached
+        if current == goal:
+            path = []
+
+            while current is not None:
+                path.append(current)
+                current = parent[current]
+
+            path.reverse()
+            return path
+
+        for dr, dc in directions:
+            nr = current[0] + dr
+            nc = current[1] + dc
+            neighbor = (nr, nc)
+
+            # Check boundaries
+            if nr < 0 or nr >= rows or nc < 0 or nc >= cols:
+                continue
+
+            # Check if cell is blocked
+            if grid[nr][nc] == 1:
+                continue
+
+            # Moving to a neighboring cell costs 1
+            new_g = g_cost[current] + 1
+
+            # If this is a better path to the neighbor
+            if neighbor not in g_cost or new_g < g_cost[neighbor]:
+                g_cost[neighbor] = new_g
+
+                h = heuristic(neighbor, goal)
+                f = new_g + h
+
+                parent[neighbor] = current
+
+                heapq.heappush(
+                    open_set,
+                    (f, new_g, neighbor)
+                )
+
+    # No path exists
+    return None
+
+
+# 0 = walkable
+# 1 = blocked
+
+grid = [
+    [0, 0, 0, 0, 0],
+    [0, 1, 1, 1, 0],
+    [0, 0, 0, 0, 0],
+    [0, 1, 0, 1, 0],
+    [0, 0, 0, 0, 0]
+]
+
+start = (0, 0)
+goal = (4, 4)
+
+path = a_star(grid, start, goal)
+
+if path:
+    print("Shortest path:")
+    print(path)
+    print("Path length:", len(path) - 1)
+else:
+    print("No path exists.")
+
+
+
+
+import math
+import heapq
+
+cities = {
+    'A': (0, 0),
+    'B': (2, 3),
+    'C': (5, 2),
+    'D': (6, 6),
+    'E': (8, 3)
+}
+
+# Connections between cities
+graph = {
+    'A': ['B', 'C'],
+    'B': ['A', 'C', 'D'],
+    'C': ['A', 'B', 'D', 'E'],
+    'D': ['B', 'C', 'E'],
+    'E': ['C', 'D']
+}
+
+
+# Calculate Euclidean distance
+def heuristic(city, goal):
+    x1, y1 = cities[city]
+    x2, y2 = cities[goal]
+
+    return math.sqrt((x1 - x2)**2 + (y1 - y2)**2)
+
+
+def best_first_search(start, goal):
+
+    # Priority queue: (heuristic, city)
+    open_set = []
+    heapq.heappush(open_set, (heuristic(start, goal), start))
+
+    visited = set()
+
+    # Used to reconstruct the path
+    parent = {start: None}
+
+    while open_set:
+
+        # Get city with smallest heuristic
+        h, current = heapq.heappop(open_set)
+
+        if current in visited:
+            continue
+
+        visited.add(current)
+
+        # Goal reached
+        if current == goal:
+            path = []
+
+            while current is not None:
+                path.append(current)
+                current = parent[current]
+
+            path.reverse()
+            return path
+
+        # Explore neighboring cities
+        for neighbor in graph[current]:
+
+            if neighbor not in visited:
+
+                parent[neighbor] = current
+
+                heapq.heappush(
+                    open_set,
+                    (heuristic(neighbor, goal), neighbor)
+                )
+
+    return None
+
+
+# Example
+start = 'A'
+goal = 'E'
+
+path = best_first_search(start, goal)
+
+print("Path:", path)
